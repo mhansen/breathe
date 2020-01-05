@@ -79,7 +79,7 @@ var (
 	 <h1>PMS5003 Prometheus Exporter</h1>
 	 <a href="/metrics">Metrics</a>
 	 <p>
-	 <pre>{{.}}</pre>
+	 <pre>portname={{.}}</pre>
 	 `))
 )
 
@@ -90,7 +90,7 @@ func main() {
 	http.Handle("/metrics", promhttp.Handler())
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		index.Execute(w, "")
+		index.Execute(w, *portname)
 	})
 	http.ListenAndServe(*port, nil)
 }
