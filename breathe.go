@@ -14,11 +14,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"text/template"
+
+	"log"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
 
 	"github.com/jacobsa/go-serial/serial"
 )
@@ -56,12 +58,26 @@ var (
 		},
 		[]string{"particle_size"},
 	)
+
+	index = template.Must(template.New("index").Parse(
+		`<!doctype html>
+	 <title>PMS5003 Prometheus Exporter</title>
+	 <h1>PMS5003 Prometheus Exporter</h1>
+	 <a href="/metrics">Metrics</a>
+	 <p>
+	 <pre>{{.}}</pre>
+	 `))
 )
 
 func main() {
 	flag.Parse()
+	log.Printf("PMS Prometheus Exporter starting on port %v and file %v\n", *port, *portname)
 	go readPortForever()
 	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		index.Execute(w, "")
+	})
 	http.ListenAndServe(*port, nil)
 }
 
@@ -136,12 +152,14 @@ func (p *PMS5003) valid() bool {
 
 func readPMS(r io.Reader) (*PMS5003, error) {
 	if err := awaitMagic(r); err != nil {
-		return nil, err
+		// Read errors are likely unrecoverable - just quit and restart.
+		log.Fatalf("awaitMagic: %v", err)
 	}
 	buf := make([]byte, 30)
 	n, err := io.ReadFull(r, buf)
 	if err != nil {
-		return nil, err
+		// Read errors are likely unrecoverable - just quit and restart.
+		log.Fatalf("ReadFull: %v", err)
 	}
 	if n != 30 {
 		return nil, fmt.Errorf("too few bytes read: want %d got %d", 30, n)
@@ -157,6 +175,7 @@ func readPMS(r io.Reader) (*PMS5003, error) {
 	binary.Read(bufR, binary.BigEndian, &p)
 
 	if sum != p.Checksum {
+		// This error is recoverable
 		return nil, fmt.Errorf("checksum: got %v want %v", sum, p)
 	}
 	return &p, nil
