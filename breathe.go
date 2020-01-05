@@ -34,29 +34,43 @@ var (
 	portname = flag.String("portname", "", "filename of serial port")
 	port     = flag.String("port", ":1971", "http port to listen on")
 
-	packets_received = promauto.NewGauge(
-		prometheus.GaugeOpts{
+	packets_received = promauto.NewCounter(
+		prometheus.CounterOpts{
 			Name: "packets_received",
 		},
 	)
 
+	packet_checksum_errors = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "packet_checksum_errors",
+		},
+	)
+
+	// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
 	particulate_matter_standard = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "particulate_matter_standard",
+			Help: "Micrograms per cubic meter, standard particle",
 		},
-		[]string{"particle_size"},
+		[]string{"microns"},
 	)
+
+	// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
 	particulate_matter_environmental = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "particulate_matter_environmental",
+			Help: "micrograms per cubic meter, adjusted for atmospheric environment",
 		},
-		[]string{"particle_size"},
+		[]string{"microns"},
 	)
+
+	// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
 	particle_counts = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "particle_counts",
+			Help: "Number of particles with diameter beyond given number of microns in 0.1L of air",
 		},
-		[]string{"particle_size"},
+		[]string{"microns_lower_bound"},
 	)
 
 	index = template.Must(template.New("index").Parse(
@@ -125,6 +139,7 @@ func readPortForever() {
 	}
 }
 
+// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
 type PMS5003 struct {
 	Length         uint16
 	Pm10Std        uint16
@@ -176,6 +191,7 @@ func readPMS(r io.Reader) (*PMS5003, error) {
 
 	if sum != p.Checksum {
 		// This error is recoverable
+		packet_checksum_errors.Inc()
 		return nil, fmt.Errorf("checksum: got %v want %v", sum, p)
 	}
 	return &p, nil
