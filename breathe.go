@@ -34,40 +34,40 @@ var (
 	portname = flag.String("portname", "", "filename of serial port")
 	port     = flag.String("port", ":1971", "http port to listen on")
 
-	packets_received = promauto.NewCounter(
+	pms_packets_received = promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "packets_received",
+			Name: "pms_packets_received",
 		},
 	)
 
-	packet_checksum_errors = promauto.NewCounter(
+	pms_packet_checksum_errors = promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "packet_checksum_errors",
+			Name: "pms_packet_checksum_errors",
 		},
 	)
 
 	// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
-	particulate_matter_standard = promauto.NewGaugeVec(
+	pms_particulate_matter_standard = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "particulate_matter_standard",
+			Name: "pms_particulate_matter_standard",
 			Help: "Micrograms per cubic meter, standard particle",
 		},
 		[]string{"microns"},
 	)
 
 	// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
-	particulate_matter_environmental = promauto.NewGaugeVec(
+	pms_particulate_matter_environmental = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "particulate_matter_environmental",
+			Name: "pms_particulate_matter_environmental",
 			Help: "micrograms per cubic meter, adjusted for atmospheric environment",
 		},
 		[]string{"microns"},
 	)
 
 	// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
-	particle_counts = promauto.NewGaugeVec(
+	pms_particle_counts = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "particle_counts",
+			Name: "pms_particle_counts",
 			Help: "Number of particles with diameter beyond given number of microns in 0.1L of air",
 		},
 		[]string{"microns_lower_bound"},
@@ -123,19 +123,19 @@ func readPortForever() {
 			log.Println("pms is not valid. Ignoring...")
 			continue
 		}
-		packets_received.Inc()
-		particulate_matter_standard.WithLabelValues("1").Set(float64(pms.Pm10Std))
-		particulate_matter_standard.WithLabelValues("2.5").Set(float64(pms.Pm25Std))
-		particulate_matter_standard.WithLabelValues("10").Set(float64(pms.Pm100Std))
-		particulate_matter_environmental.WithLabelValues("1").Set(float64(pms.Pm10Env))
-		particulate_matter_environmental.WithLabelValues("2.5").Set(float64(pms.Pm25Env))
-		particulate_matter_environmental.WithLabelValues("10").Set(float64(pms.Pm100Env))
-		particle_counts.WithLabelValues("3").Set(float64(pms.Particles3um))
-		particle_counts.WithLabelValues("5").Set(float64(pms.Particles5um))
-		particle_counts.WithLabelValues("10").Set(float64(pms.Particles10um))
-		particle_counts.WithLabelValues("25").Set(float64(pms.Particles25um))
-		particle_counts.WithLabelValues("50").Set(float64(pms.Particles50um))
-		particle_counts.WithLabelValues("100").Set(float64(pms.Particles100um))
+		pms_packets_received.Inc()
+		pms_particulate_matter_standard.WithLabelValues("1").Set(float64(pms.Pm10Std))
+		pms_particulate_matter_standard.WithLabelValues("2.5").Set(float64(pms.Pm25Std))
+		pms_particulate_matter_standard.WithLabelValues("10").Set(float64(pms.Pm100Std))
+		pms_particulate_matter_environmental.WithLabelValues("1").Set(float64(pms.Pm10Env))
+		pms_particulate_matter_environmental.WithLabelValues("2.5").Set(float64(pms.Pm25Env))
+		pms_particulate_matter_environmental.WithLabelValues("10").Set(float64(pms.Pm100Env))
+		pms_particle_counts.WithLabelValues("3").Set(float64(pms.Particles3um))
+		pms_particle_counts.WithLabelValues("5").Set(float64(pms.Particles5um))
+		pms_particle_counts.WithLabelValues("10").Set(float64(pms.Particles10um))
+		pms_particle_counts.WithLabelValues("25").Set(float64(pms.Particles25um))
+		pms_particle_counts.WithLabelValues("50").Set(float64(pms.Particles50um))
+		pms_particle_counts.WithLabelValues("100").Set(float64(pms.Particles100um))
 	}
 }
 
@@ -191,7 +191,7 @@ func readPMS(r io.Reader) (*PMS5003, error) {
 
 	if sum != p.Checksum {
 		// This error is recoverable
-		packet_checksum_errors.Inc()
+		pms_packet_checksum_errors.Inc()
 		return nil, fmt.Errorf("checksum: got %v want %v", sum, p)
 	}
 	return &p, nil
