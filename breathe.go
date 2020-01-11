@@ -34,9 +34,9 @@ var (
 	portname = flag.String("portname", "", "filename of serial port")
 	port     = flag.String("port", ":1971", "http port to listen on")
 
-	pms_packets_received = promauto.NewCounter(
+	pms_received_packets = promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "pms_packets_received",
+			Name: "pms_received_packets",
 		},
 	)
 
@@ -46,9 +46,9 @@ var (
 		},
 	)
 
-	pms_bytes_skipped = promauto.NewCounter(
+	pms_skipped_bytes = promauto.NewCounter(
 		prometheus.CounterOpts{
-			Name: "pms_bytes_skipped",
+			Name: "pms_skipped_bytes",
 		},
 	)
 
@@ -129,7 +129,7 @@ func readPortForever() {
 			log.Println("pms is not valid. Ignoring...")
 			continue
 		}
-		pms_packets_received.Inc()
+		pms_received_packets.Inc()
 		pms_particulate_matter_standard.WithLabelValues("1").Set(float64(pms.Pm10Std))
 		pms_particulate_matter_standard.WithLabelValues("2.5").Set(float64(pms.Pm25Std))
 		pms_particulate_matter_standard.WithLabelValues("10").Set(float64(pms.Pm100Std))
@@ -145,7 +145,7 @@ func readPortForever() {
 	}
 }
 
-// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
+// PMS5003 wraps an air quality packet, as documented in https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
 type PMS5003 struct {
 	Length         uint16
 	Pm10Std        uint16
@@ -220,7 +220,7 @@ func awaitMagic(r io.Reader) error {
 			log.Println("found magic!")
 			return nil
 		}
-		pms_bytes_skipped.Inc()
+		pms_skipped_bytes.Inc()
 	}
 }
 
