@@ -46,6 +46,12 @@ var (
 		},
 	)
 
+	pms_bytes_skipped = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "pms_bytes_skipped",
+		},
+	)
+
 	// https://cdn-shop.adafruit.com/product-files/3686/plantower-pms5003-manual_v2-3.pdf
 	pms_particulate_matter_standard = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -214,6 +220,7 @@ func awaitMagic(r io.Reader) error {
 			log.Println("found magic!")
 			return nil
 		}
+		pms_bytes_skipped.Inc()
 	}
 }
 
