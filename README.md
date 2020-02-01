@@ -7,9 +7,9 @@ Pushed to [Docker Hub](https://hub.docker.com/repository/docker/markhnsn/breathe
 Example usage:
 
     $ go build
-    $ ./breathe --port=:8000 --portname=/dev/serial0
+    $ ./breathe --port=:9662 --portname=/dev/serial0
 
-    $ curl http://localhost:8000/metrics
+    $ curl http://localhost:9662/metrics
 
     ...
     # HELP pms_packet_checksum_errors 
@@ -48,9 +48,9 @@ Example docker-compose.yml:
         image: markhnsn/breathe
         restart: always
         ports:
-          - "9009:9009"
+          - "9662:9662"
         command: [
-          "--port", ":9009",
+          "--port", ":9662",
           "--portname", "/dev/serial0"
         ]
         devices:
@@ -61,6 +61,6 @@ Example prometheus.yml:
     scrape_configs:
       - job_name: 'breathe'
         static_configs:
-          - targets: ['breathe:9009']
+          - targets: ['breathe:9662']
             labels:
               location: 'Lounge'

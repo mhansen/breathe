@@ -32,7 +32,8 @@ const (
 
 var (
 	portname = flag.String("portname", "", "filename of serial port")
-	port     = flag.String("port", ":1971", "http port to listen on")
+	// Port reserved at https://github.com/prometheus/prometheus/wiki/Default-port-allocations
+	port = flag.String("port", ":9662", "http port to listen on")
 
 	pms_received_packets = promauto.NewCounter(
 		prometheus.CounterOpts{

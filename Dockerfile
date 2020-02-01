@@ -9,5 +9,5 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -a breathe.go
 
 FROM scratch
 COPY --from=builder /root/breathe /root/
-EXPOSE 9009
+EXPOSE 9662
 ENTRYPOINT ["/root/breathe"]
