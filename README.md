@@ -1,6 +1,6 @@
 # Breathe
 
-A Prometheus exporter for PMS5003 Particulate Matter/Air Quality sensors.
+A [Prometheus](https://prometheus.io/) exporter for [PMS5003](https://www.aqmd.gov/docs/default-source/aq-spec/resources-page/plantower-pms5003-manual_v2-3.pdf) Particulate Matter/Air Quality sensors.
 
 Pushed to [Docker Hub](https://hub.docker.com/repository/docker/markhnsn/breathe)
 
