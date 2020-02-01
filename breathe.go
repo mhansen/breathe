@@ -217,7 +217,7 @@ func awaitMagic(r io.Reader) error {
 			return err
 		}
 		if b1 == magic1 && b2 == magic2 {
-			log.Println("found magic!")
+			// found magic
 			return nil
 		}
 		pms_skipped_bytes.Inc()
