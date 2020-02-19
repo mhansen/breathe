@@ -1,13 +1,30 @@
-FROM golang:alpine as builder
+# Use the official Golang image to create a build artifact.
+# This is based on Debian and sets the GOPATH to /go.
+# https://hub.docker.com/_/golang
+FROM golang:1.13 as builder
 
-RUN apk update && apk add git && apk add ca-certificates
+# Create and change to the app directory.
+WORKDIR /app
 
-WORKDIR /root
-COPY go.mod go.sum *.go /root/
-RUN go get -d -v
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -a breathe.go
+# Retrieve application dependencies.
+# This allows the container build to reuse cached dependencies.
+COPY go.* ./
+RUN go mod download
 
-FROM scratch
-COPY --from=builder /root/breathe /root/
-EXPOSE 9662
-ENTRYPOINT ["/root/breathe"]
+# Copy local code to the container image.
+COPY . ./
+
+# Build the binary.
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -mod=readonly -v -o server
+
+# Use the official Alpine image for a lean production container.
+# https://hub.docker.com/_/alpine
+# https://docs.docker.com/develop/develop-images/multistage-build/#use-multi-stage-builds
+FROM alpine:3
+RUN apk add --no-cache ca-certificates
+
+# Copy the binary to the production image from the builder stage.
+COPY --from=builder /app/server /server
+
+# Run the web service on container startup.
+CMD ["/server"]
