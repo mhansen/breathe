@@ -4,6 +4,10 @@ A [Prometheus](https://prometheus.io/) exporter for [PMS5003](https://www.aqmd.g
 
 Pushed to [Docker Hub](https://hub.docker.com/repository/docker/markhnsn/breathe)
 
+Pair with Grafana for beautiful dashboarding:
+
+![Graph of raw particulate count, Australian Air Quality index, and packets/second over time](img/grafana.png)
+
 Example usage:
 
 ```shell
