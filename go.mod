@@ -2,7 +2,7 @@ module github.com/mhansen/breathe
 
 go 1.21
 
-toolchain go1.24.1
+toolchain go1.24.2
 
 require (
 	github.com/jacobsa/go-serial v0.0.0-20180131005756-15cf729a72d4
